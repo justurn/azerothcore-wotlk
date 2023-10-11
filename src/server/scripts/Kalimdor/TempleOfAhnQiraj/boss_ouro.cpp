@@ -35,6 +35,7 @@ enum Spells
     SPELL_BOULDER               = 26616,
     SPELL_OURO_SUBMERGE_VISUAL  = 26063,
     SPELL_SUMMON_SANDWORM_BASE  = 26133,
+    SPELL_SCALE_DAMAGE          = 91003,
 
     // Misc - Mounds, Ouro Spawner
     SPELL_BIRTH                 = 26586,
@@ -133,7 +134,7 @@ struct boss_ouro : public BossAI
                 })
                 .Schedule(20s, [this](TaskContext context)
                     {
-                        if(_summonedMounds < 5){
+                        if(_summonedMounds < 5){ // caps mounds at 5 
                             DoCastSelf(SPELL_SUMMON_OURO_MOUNDS, true);
                             _summonedMounds++;
                         }
@@ -207,6 +208,7 @@ struct boss_ouro : public BossAI
     {
         DoCastSelf(SPELL_BIRTH);
         DoCastSelf(SPELL_SUMMON_SANDWORM_BASE, true);
+        DoCastSelf(SPELL_SCALE_DAMAGE); // scales damage temporarily so first hit out doesn't one hit a player
         me->SetReactState(REACT_AGGRESSIVE);
         CastGroundRupture();
         _scheduler
