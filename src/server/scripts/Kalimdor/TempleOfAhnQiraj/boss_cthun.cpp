@@ -27,6 +27,7 @@ EndScriptData */
 #include "ScriptedCreature.h"
 #include "SpellScript.h"
 #include "temple_of_ahnqiraj.h"
+#include <vector>
 
 enum Spells
 {
@@ -493,12 +494,19 @@ struct boss_cthun : public BossAI
                     if (Creature* spawned = me->SummonCreature(NPC_GIANT_CLAW_TENTACLE, *target, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 45))
                     {
                         spawned->AI()->AttackStart(target);
+                        currentTentacles.push_back(spawned);
+                    }
+                    if(currentTentacles.size() >= 5){
+                        for(int i = 0; i <currentTentacles.size(); i++){
+                            currentTentacles[i]->KillSelf();
+                            std::cout << "I'm killing a tentacle!\n";
+                        }
                     }
                     _giant_tentacle_cap++;
                 }
             }
 
-            context.Repeat(2min);
+            context.Repeat(1min);
         }).Schedule(38s, [this](TaskContext context)
         {
             if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, NotInStomachSelector()))
@@ -610,7 +618,8 @@ struct boss_cthun : public BossAI
         uint8 _giant_tentacle_cap;
 
         //Body Phase
-        uint8 _fleshTentaclesKilled;
+        uint8 _fleshTentaclesKilled = 0;
+        std::vector<Creature*> currentTentacles;
 };
 
 struct npc_eye_tentacle : public ScriptedAI
