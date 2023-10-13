@@ -815,7 +815,7 @@ struct npc_giant_claw_tentacle : public ScriptedAI
     void ScheduleTasks()
     {
         // Check if a target is in melee range
-        _scheduler.Schedule(20s, [this](TaskContext task)
+        _scheduler.Schedule(10s, [this](TaskContext task)
             {
                 if (Unit* target = me->GetVictim())
                 {
@@ -828,7 +828,7 @@ struct npc_giant_claw_tentacle : public ScriptedAI
                         }
                         else // Main target not found, and failed to acquire a new target... Submerge
                         {
-                            Submerge();
+                            //Submerge();
                         }
                     }
                 }
