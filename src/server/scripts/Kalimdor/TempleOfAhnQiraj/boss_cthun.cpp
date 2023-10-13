@@ -498,7 +498,7 @@ struct boss_cthun : public BossAI
                 }
             }
 
-            context.Repeat(1min);
+            context.Repeat(2min);
         }).Schedule(38s, [this](TaskContext context)
         {
             if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, NotInStomachSelector()))
