@@ -134,7 +134,7 @@ struct boss_ouro : public BossAI
                 })
                 .Schedule(20s, [this](TaskContext context)
                     {
-                        if(_summonedMounds < 5){ // caps mounds at 5 
+                        if(_summonedMounds < 3){ // caps mounds at 5 
                             DoCastSelf(SPELL_SUMMON_OURO_MOUNDS, true);
                             _summonedMounds++;
                         }
