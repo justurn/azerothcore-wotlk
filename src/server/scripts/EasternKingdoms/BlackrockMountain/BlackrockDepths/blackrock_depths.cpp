@@ -268,8 +268,6 @@ public:
                 case 5:
                     if (instance)
                     {
-                        // get kill credit from a spell to complete the RDF
-                        me->CastSpell((Unit*)nullptr, 91011, true);
                         me->GetMap()->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, NPC_GRIMSTONE, me);
                         instance->SetData(TYPE_RING_OF_LAW, DONE);
                     }
