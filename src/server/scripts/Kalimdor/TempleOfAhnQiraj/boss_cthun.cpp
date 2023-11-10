@@ -125,7 +125,6 @@ enum Yells
 #define LESSTHAN6                           6
 #define LESSTHAN11                          12
 #define LESSTHAN21                          18
-#define GIANTSPAWNCAP                       5
 
 //Flesh tentacle positions
 const Position FleshTentaclePos[2] =
@@ -414,8 +413,6 @@ struct boss_cthun : public BossAI
     {
         //One random wisper every 90 - 300 seconds
         WisperTimer = 90000;
-        _giant_tentacle_cap = 0;
-
         _fleshTentaclesKilled = 0;
 
         //Reset flags
@@ -490,19 +487,9 @@ struct boss_cthun : public BossAI
             if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, NotInStomachSelector()))
             {
                 //Spawn claw tentacle on the random target
-                if(_giant_tentacle_cap < GIANTSPAWNCAP){
-                    if (Creature* spawned = me->SummonCreature(NPC_GIANT_CLAW_TENTACLE, *target, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 45))
-                    {
-                        spawned->AI()->AttackStart(target);
-                        currentTentacles.push_back(spawned);
-                    }
-                    if(currentTentacles.size() >= 5){
-                        for(int i = 0; i <currentTentacles.size(); i++){
-                            currentTentacles[i]->KillSelf();
-                            std::cout << "I'm killing a tentacle!\n";
-                        }
-                    }
-                    _giant_tentacle_cap++;
+                if (Creature* spawned = me->SummonCreature(NPC_GIANT_CLAW_TENTACLE, *target, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 45))
+                {
+                    spawned->AI()->AttackStart(target);
                 }
             }
 
@@ -826,10 +813,10 @@ struct npc_giant_claw_tentacle : public ScriptedAI
                         {
                             AttackStart(newTarget);
                         }
-                        else // Main target not found, and failed to acquire a new target... Submerge
-                        {
+                        //else // Main target not found, and failed to acquire a new target... Submerge
+                        //{
                             //Submerge();
-                        }
+                        //}
                     }
                 }
 
