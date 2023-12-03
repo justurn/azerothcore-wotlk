@@ -15,19 +15,19 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "AreaTriggerScript.h"
+#include "CreatureScript.h"
+#include "Player.h"
+#include "ScriptedCreature.h"
+#include "SpellScript.h"
+#include "SpellScriptLoader.h"
+#include "temple_of_ahnqiraj.h"
 /* ScriptData
 SDName: Boss_Cthun
 SD%Complete: 95
 SDComment: Darkglare tracking issue
 SDCategory: Temple of Ahn'Qiraj
 EndScriptData */
-
-#include "Player.h"
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
-#include "SpellScript.h"
-#include "temple_of_ahnqiraj.h"
-#include <vector>
 
 enum Spells
 {
@@ -173,8 +173,6 @@ struct boss_eye_of_cthun : public BossAI
         Creature* pPortal = me->FindNearestCreature(NPC_CTHUN_PORTAL, 10);
         if (pPortal)
             pPortal->SetReactState(REACT_PASSIVE);
-
-        scheduler.CancelAll();
 
         BossAI::Reset();
     }
@@ -347,15 +345,6 @@ struct boss_eye_of_cthun : public BossAI
             });
     }
 
-    void UpdateAI(uint32 diff) override
-    {
-        //Check if we have a target
-        if (!UpdateVictim())
-            return;
-
-        scheduler.Update(diff);
-    }
-
     void DamageTaken(Unit*, uint32& damage, DamageEffectType, SpellSchoolMask) override
     {
         //Only if it will kill
@@ -420,7 +409,6 @@ struct boss_cthun : public BossAI
         me->SetUnitFlag(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
 
         BossAI::Reset();
-        scheduler.CancelAll();
     }
 
     void JustEngagedWith(Unit* /*who*/) override
@@ -642,7 +630,7 @@ struct npc_eye_tentacle : public ScriptedAI
     void Reset() override
     {
         DoZoneInCombat();
-        _scheduler.Schedule(500ms, [this](TaskContext /*task*/)
+        scheduler.Schedule(500ms, [this](TaskContext /*task*/)
         {
             DoCastAOE(SPELL_GROUND_RUPTURE);
         })
@@ -654,7 +642,7 @@ struct npc_eye_tentacle : public ScriptedAI
 
     void JustEngagedWith(Unit* /*who*/) override
     {
-        _scheduler.Schedule(1s, 5s, [this](TaskContext context)
+        scheduler.Schedule(1s, 5s, [this](TaskContext context)
         {
             if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, NotInStomachSelector()))
             {
@@ -671,11 +659,10 @@ struct npc_eye_tentacle : public ScriptedAI
         if (!UpdateVictim())
             return;
 
-        _scheduler.Update(diff);
+        scheduler.Update(diff);
     }
 
 private:
-    TaskScheduler _scheduler;
     ObjectGuid _portalGUID;
 };
 
@@ -713,24 +700,24 @@ struct npc_claw_tentacle : public ScriptedAI
 
     void Reset() override
     {
-        _scheduler.Schedule(Milliseconds(500), [this](TaskContext /*task*/)
-            {
-                DoCastAOE(SPELL_GROUND_RUPTURE);
-            }).Schedule(Minutes(5), [this](TaskContext /*task*/)
-            {
-                me->DespawnOrUnsummon();
-            });
+        scheduler.Schedule(Milliseconds(500), [this](TaskContext /*task*/)
+        {
+            DoCastAOE(SPELL_GROUND_RUPTURE);
+        }).Schedule(Minutes(5), [this](TaskContext /*task*/)
+        {
+            me->DespawnOrUnsummon();
+        });
     }
 
     void JustEngagedWith(Unit* /*who*/) override
     {
         DoZoneInCombat();
 
-        _scheduler.Schedule(2s, [this](TaskContext context)
-            {
-                DoCastVictim(SPELL_HAMSTRING);
-                context.Repeat(5s);
-            });
+        scheduler.Schedule(2s, [this](TaskContext context)
+        {
+            DoCastVictim(SPELL_HAMSTRING);
+            context.Repeat(5s);
+        });
     }
 
     void UpdateAI(uint32 diff) override
@@ -739,13 +726,12 @@ struct npc_claw_tentacle : public ScriptedAI
         if (!UpdateVictim())
             return;
 
-        _scheduler.Update(diff);
+        scheduler.Update(diff);
 
         DoMeleeAttackIfReady();
     }
 
 private:
-    TaskScheduler _scheduler;
     ObjectGuid _portalGUID;
 };
 
@@ -785,10 +771,10 @@ struct npc_giant_claw_tentacle : public ScriptedAI
 
     void Reset() override
     {
-        _scheduler.Schedule(500ms, [this](TaskContext /*task*/)
-            {
-                DoCastAOE(SPELL_MASSIVE_GROUND_RUPTURE);
-            });
+        scheduler.Schedule(500ms, [this](TaskContext /*task*/)
+        {
+            DoCastAOE(SPELL_MASSIVE_GROUND_RUPTURE);
+        });
     }
 
     void JustEngagedWith(Unit* /*who*/) override
@@ -800,7 +786,7 @@ struct npc_giant_claw_tentacle : public ScriptedAI
     void ScheduleTasks()
     {
         // Check if a target is in melee range
-        _scheduler.Schedule(10s, [this](TaskContext task)
+        scheduler.Schedule(10s, [this](TaskContext task)
             {
                 if (Unit* target = me->GetVictim())
                 {
@@ -850,13 +836,13 @@ struct npc_giant_claw_tentacle : public ScriptedAI
         //me->SetHealth(me->GetMaxHealth());
         me->SetUnitFlag(UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
 
-        _scheduler.CancelAll();
+        scheduler.CancelAll();
         _canAttack = false;
 
-        _scheduler.Schedule(10s, [this](TaskContext /*task*/)
-            {
-                Emerge();
-            });
+        scheduler.Schedule(5s, [this](TaskContext /*task*/)
+        {
+            Emerge();
+        });
     }
 
     void Emerge()
@@ -886,7 +872,7 @@ struct npc_giant_claw_tentacle : public ScriptedAI
         if (!UpdateVictim())
             return;
 
-        _scheduler.Update(diff);
+        scheduler.Update(diff);
 
         if (_canAttack)
         {
@@ -895,7 +881,6 @@ struct npc_giant_claw_tentacle : public ScriptedAI
     }
 
 private:
-    TaskScheduler _scheduler;
     ObjectGuid _portalGUID;
     bool _canAttack;
 };
@@ -934,18 +919,18 @@ struct npc_giant_eye_tentacle : public ScriptedAI
 
     void Reset() override
     {
-        _scheduler.Schedule(500ms, [this](TaskContext /*task*/)
+        scheduler.Schedule(500ms, [this](TaskContext /*task*/)
+        {
+            DoCastAOE(SPELL_MASSIVE_GROUND_RUPTURE);
+        }).Schedule(1s, 5s, [this](TaskContext context)
+        {
+            if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, NotInStomachSelector()))
             {
-                DoCastAOE(SPELL_MASSIVE_GROUND_RUPTURE);
-            }).Schedule(1s, 5s, [this](TaskContext context)
-            {
-                if (Unit* target = SelectTarget(SelectTargetMethod::Random, 0, NotInStomachSelector()))
-                {
-                    DoCast(target, SPELL_GREEN_BEAM);
-                }
+                DoCast(target, SPELL_GREEN_BEAM);
+            }
 
-                context.Repeat(2100ms);
-            });
+            context.Repeat(2100ms);
+        });
     }
 
     void JustEngagedWith(Unit* /*who*/) override
@@ -959,11 +944,10 @@ struct npc_giant_eye_tentacle : public ScriptedAI
         if (!UpdateVictim())
             return;
 
-        _scheduler.Update(diff);
+        scheduler.Update(diff);
     }
 
 private:
-    TaskScheduler _scheduler;
     ObjectGuid _portalGUID;
 };
 
@@ -1089,3 +1073,4 @@ void AddSC_boss_cthun()
     new at_cthun_stomach_exit();
     new at_cthun_center();
 }
+
