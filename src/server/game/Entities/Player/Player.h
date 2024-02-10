@@ -771,6 +771,14 @@ struct ItemPosCount
 };
 typedef std::vector<ItemPosCount> ItemPosCountVec;
 
+struct SavedItem
+{
+    Item* item;
+    uint16 dstpos;
+
+    SavedItem(Item* _item, uint16 dstpos) : item(_item), dstpos(dstpos) {}
+};
+
 enum TransferAbortReason
 {
     TRANSFER_ABORT_NONE                     = 0x00,
@@ -1161,6 +1169,8 @@ public:
     void GiveLevel(uint8 level);
 
     void InitStatsForLevel(bool reapplyMods = false);
+
+    [[nodiscard]] bool HasActivePowerType(Powers power) override;
 
     // .cheat command related
     [[nodiscard]] bool GetCommandStatus(uint32 command) const { return _activeCheats & command; }
