@@ -37,7 +37,9 @@ enum Spells
     SPELL_CHARGE                    = 35412,
     SPELL_REBIRTH_DIVE              = 35369,
     SPELL_DIVE_BOMB_VISUAL          = 35367,
-    SPELL_DIVE_BOMB                 = 35181
+    SPELL_DIVE_BOMB                 = 35181,
+
+    SPELL_MODEL_VISIBILITY          = 24401 // Might not be accurate
 };
 
 // @todo: Alar doesnt seem to move to waypoints but instead to the triggers in p1
@@ -100,15 +102,6 @@ struct boss_alar : public BossAI
         });
     }
 
-    void JustReachedHome() override
-    {
-        BossAI::JustReachedHome();
-        if (me->IsEngaged())
-        {
-            ConstructWaypointsAndMove();
-        }
-    }
-
     void Reset() override
     {
         BossAI::Reset();
@@ -125,6 +118,15 @@ struct boss_alar : public BossAI
         me->SetModelVisible(true);
         me->SetReactState(REACT_AGGRESSIVE);
         ConstructWaypointsAndMove();
+    }
+
+    void JustReachedHome() override
+    {
+        BossAI::JustReachedHome();
+        if (me->IsEngaged())
+        {
+            ConstructWaypointsAndMove();
+        }
     }
 
     void JustEngagedWith(Unit* who) override
@@ -154,6 +156,29 @@ struct boss_alar : public BossAI
             context.Repeat(_platformMoveRepeatTimer);
         });
         ScheduleMainSpellAttack(0s);
+    }
+
+    bool CanAIAttack(Unit const* victim) const override
+    {
+        if (me->isMoving())
+            return true;
+
+        return me->IsWithinMeleeRange(victim);
+    }
+
+    void EnterEvadeMode(EvadeReason why) override
+    {
+        if (why == EVADE_REASON_BOUNDARY)
+        {
+            BossAI::EnterEvadeMode(why);
+        }
+        else
+        {
+            if (me->GetThreatMgr().GetThreatList().empty())
+            {
+                BossAI::EnterEvadeMode(why);
+            }
+        }
     }
 
     void JustDied(Unit* killer) override
@@ -467,21 +492,21 @@ class spell_alar_ember_blast : public SpellScript
 {
     PrepareSpellScript(spell_alar_ember_blast);
 
-    void HandleForceCast(SpellEffIndex effIndex)
+    void HandleCast()
     {
-        PreventHitEffect(effIndex);
         if (InstanceScript* instance = GetCaster()->GetInstanceScript())
         {
             if (Creature* alar = instance->GetCreature(DATA_ALAR))
             {
-                Unit::DealDamage(GetCaster(), alar, alar->CountPctFromMaxHealth(2));
+                if (!alar->HasAura(SPELL_MODEL_VISIBILITY))
+                    Unit::DealDamage(GetCaster(), alar, alar->CountPctFromMaxHealth(2));
             }
         }
     }
 
     void Register() override
     {
-        OnEffectHitTarget += SpellEffectFn(spell_alar_ember_blast::HandleForceCast, EFFECT_2, SPELL_EFFECT_FORCE_CAST);
+        AfterCast += SpellCastFn(spell_alar_ember_blast::HandleCast);
     }
 };
 
