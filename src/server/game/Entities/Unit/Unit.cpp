@@ -8825,8 +8825,8 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 damage, Aura* triggeredByAura, Sp
                     case 91056:
                         {
                             // dont allow non-positive dots to proc
-                            //if (!procSpell || !procSpell->IsPositive())
-                            //    return false;
+                            if (!procSpell || !procSpell->IsPositive())
+                                return false;
 
                             //if healed by another unit (victim)
                             //if (this == victim)
