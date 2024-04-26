@@ -7041,6 +7041,35 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 }
                 switch (dummySpell->Id)
                 {
+                    // Magical Attunement
+                    case 91056:
+                        {
+                            // dont allow non-positive dots to proc
+                            if (!procSpell || !procSpell->IsPositive())
+                                return false;
+
+                            //if healed by another unit (victim)
+                            //if (this == victim)
+                            //    return false;
+
+                            HealInfo const* healInfo = eventInfo.GetHealInfo();
+                            if (!healInfo)
+                            {
+                                return false;
+                            }
+
+                            uint32 effectiveHeal = healInfo->GetEffectiveHeal();
+                            if (effectiveHeal)
+                            {
+                                // heal amount
+                                basepoints0 = int32(CalculatePct(effectiveHeal, triggerAmount));
+                                target = this;
+
+                                if (basepoints0)
+                                    triggered_spell_id = 91055;
+                            }
+                            break;
+                        }
                     // Glyph of Polymorph
                     case 56375:
                         {
@@ -8820,35 +8849,6 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 damage, Aura* triggeredByAura, Sp
                             int32 bp0 = int32(CalculatePct(GetMaxPower(POWER_MANA), spInfo->Effects[0].CalcValue()));
                             CastCustomSpell(this, 67545, &bp0, nullptr, nullptr, true, nullptr, triggeredByAura->GetEffect(EFFECT_0), GetGUID());
                             return true;
-                        }
-                    // Magical Attunement
-                    case 91056:
-                        {
-                            // dont allow non-positive dots to proc
-                            if (!procSpell || !procSpell->IsPositive())
-                                return false;
-
-                            //if healed by another unit (victim)
-                            //if (this == victim)
-                            //    return false;
-
-                            HealInfo const* healInfo = eventInfo.GetHealInfo();
-                            if (!healInfo)
-                            {
-                                return false;
-                            }
-
-                            uint32 effectiveHeal = healInfo->GetEffectiveHeal();
-                            if (effectiveHeal)
-                            {
-                                // heal amount
-                                basepoints0 = int32(CalculatePct(effectiveHeal, triggerAmount));
-                                target = this;
-
-                                if (basepoints0)
-                                    triggered_spell_id = 91055;
-                            }
-                            break;
                         }
                 }
                 break;
