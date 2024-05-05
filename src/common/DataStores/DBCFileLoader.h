@@ -75,7 +75,7 @@ public:
             size_t stringOffset = getUInt(field);
             if (stringOffset >= file.stringSize ){
                 std::cout << "The Value of stringOffset is " << stringOffset << '\n';
-                std::cout << "The offending DBC is " << stringTable << '\n';
+                std::cout << "The string table is " << file.stringTable << '\n';
             }
             ASSERT(stringOffset < file.stringSize);
             return reinterpret_cast<char*>(file.stringTable + stringOffset);
