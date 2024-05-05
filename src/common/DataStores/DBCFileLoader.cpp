@@ -24,7 +24,6 @@ DBCFileLoader::DBCFileLoader() : recordSize(0), recordCount(0), fieldCount(0), s
 
 bool DBCFileLoader::Load(char const* filename, char const* fmt)
 {
-    std:: cout << filename <<'\n';
     uint32 header;
     if (data)
     {
